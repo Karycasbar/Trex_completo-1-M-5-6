@@ -1,8 +1,8 @@
-var trex ,trex_running, trex_collided;
-var groundImage;
-var invisibleGround;
-var cloud, cloudImage;
-var obstacle, obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obstacle6;
+var trex ,trex_running, trex_colision;
+var ImagenSuelo;
+var sueloInvisible;
+var nube, ImagenNube;
+var obstaculo, obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obstacle6;
 var score = 0;
 var PLAY = 1;
 var END = 0;
@@ -10,10 +10,10 @@ var gameState = PLAY;
 var obstaclesGroup, cloudsGroup;
 var restart, restartImg, gameOver, gameOverImg;
 var jumpSound, dieSound, checkSound;
-function preload(){
+function preload(){ //funcion para precargar archivos(imagenes, audio y videos)
   trex_running = loadAnimation("trex1.png","trex3.png","trex4.png");  
-  groundImage = loadImage("ground2.png");
-  cloudImage = loadImage("cloud.png");
+  ImagenSuelo = loadImage("ground2.png");
+  ImagenNube = loadImage("cloud.png");
 
   obstacle1 = loadImage("obstacle1.png");
   obstacle2 = loadImage("obstacle2.png");
@@ -25,35 +25,35 @@ function preload(){
   restartImg = loadImage("restart.png");
   gameOverImg = loadImage("gameOver.png");
 
-  trex_collided = loadImage("trex_collided.png");
+  trex_colision = loadImage("trex_collided.png");
 
-  jumpSound = loadSound("jump.mp3");
+  jumpSound = loadSound("jump.mp3"); //loadSound es para cargar archivos de audio
   dieSound = loadSound("die.mp3");
   checkSound = loadSound("checkpoint.mp3");
 }
 
 function setup(){
-  createCanvas(600,200)
+  createCanvas(600,200)//canvas crea el area del juego
 
   
   //crear sprite de Trex
-  trex = createSprite(50,180,20,50);
-  trex.addAnimation("running", trex_running);
-  trex.addAnimation("collided", trex_collided);
-  trex.scale = 0.5;
+  trex = createSprite(50,180,20,50); 
+  trex.addAnimation("running", trex_running); //Asignar la animacion de correr  
+  trex.addAnimation("collided", trex_colision); //Asignar la animacion de colisionar
+  trex.scale = 0.5; //escala
   
 
   //crear sprite del suelo
   ground = createSprite(200,180,400,20);
-  ground.addImage("ground", groundImage);
+  ground.addImage("ground", ImagenSuelo);
 
   //crear sprite del suelo invisible
-  invisibleGround = createSprite(200,190,400,10);
-  invisibleGround.visible = false;
+  sueloInvisible = createSprite(200,190,400,10);
+  sueloInvisible.visible = false; //cambiar la visibilidad del sprite para que sea falso y asi no verla
 
   //crear grupos de obstaculos y nubes
-  obstaclesGroup = new Group();
-  cloudsGroup = new Group();
+  obstaclesGroup = new Group(); //asi de crea el grupo para los obstaculos
+  cloudsGroup = new Group(); //asi de crea el grupo para las nube
 
   restart = createSprite(300,140);
   restart.addImage(restartImg);
@@ -63,28 +63,20 @@ function setup(){
 
   restart.scale = 0.5;
   gameOver.scale = 0.5;
-
-  var rango = Math.round(random(1,20));
-  console.log(rango);
-
-  trex.setCollider("circle", 0, 0, 40);
-  trex.debug = false; //ver el colisionador 
 }
 
 function draw(){
-  background("white");
-  text("Puntuación " + score, 500, 50);
-  
+  background("white"); //para poner el color de fondo
+  text("Puntuación " + score, 500, 50); //asi creamos el texto en el juego  
 
   //Estados de juego
-  if(gameState === PLAY){
-  //mover el suelo
-    ground.velocityX = -(6 + score/100);
+  if(gameState === PLAY){ //condicion para poder crear el estado del juego PLAY (jugar)
+    ground.velocityX = -(6 + score/100); //mover el suelo
 
     //generar puntuación
-    score = score + Math.round(getFrameRate() / 60);
-    if(score > 0 && score % 100 === 0){
-      checkSound.play();
+    score = score + Math.round(getFrameRate() / 60); //FrameRate se usa para obtener los frames por segundo, lo cual hace que la puntuacion sea lenta
+    if(score > 0 && score % 100 === 0){ //con esta condición checamos que en puntación sea mayor a 0 y que puntuacion obtengamos cada 100 frames lo cual nos ayudara con el sonido
+      checkSound.play(); //play nos ayuda a reproducir el sonido cuando se indique
     }
 
     //reiniciar el suelo
@@ -128,7 +120,7 @@ function draw(){
     restart.visible = true;
 
     //cambiar la animación del Trex
-    trex.changeAnimation("collided", trex_collided);
+    trex.changeAnimation("collided", trex_colision);
 
     //establecer lifetime de los objetos para que no sean destruidos
     obstaclesGroup.setLifetimeEach(-1);
@@ -146,7 +138,7 @@ function draw(){
 
 
   //evitar que el trex caiga
-  trex.collide(invisibleGround);
+  trex.collide(sueloInvisible);
 
 
 
@@ -155,52 +147,52 @@ function draw(){
 
 function spawnClouds(){
   if(frameCount % 60 === 0){ 
-  cloud = createSprite(600, 100, 40, 10);
-  cloud.addImage(cloudImage);
-  cloud.y = Math.round(random(10,60))
-  cloud.scale = 0.4;
-  cloud.velocityX = -(6 + score/100);
+  nube = createSprite(600, 100, 40, 10);
+  nube.addImage(ImagenNube);
+  nube.y = Math.round(random(10,60))
+  nube.scale = 0.4;
+  nube.velocityX = -(6 + score/100);
 
   //ajustar la profundidad
-  cloud.depth = trex.depth;
+  nube.depth = trex.depth;
   trex.depth = trex.depth + 1;
 
   //asignar ciclo de vida
-  cloud.lifetime = 210;
+  nube.lifetime = 210;
 
   //agregar cada nube al grupo
-  cloudsGroup.add(cloud);
+  cloudsGroup.add(nube);
   }
 }
 
 function spawnObstacles(){
   if(frameCount % 60 === 0){
-    obstacle = createSprite(600, 165, 10, 40);
-    obstacle.velocityX = -(6 + score/100);
+    obstaculo = createSprite(600, 165, 10, 40);
+    obstaculo.velocityX = -(6 + score/100);
 
     //generar obstáculos al azar
     var rand = Math.round(random(1,6));
     switch(rand){
-      case 1: obstacle.addImage(obstacle1);
+      case 1: obstaculo.addImage(obstacle1);
       break;
-      case 2: obstacle.addImage(obstacle2);
+      case 2: obstaculo.addImage(obstacle2);
       break
-      case 3: obstacle.addImage(obstacle3);
+      case 3: obstaculo.addImage(obstacle3);
       break
-      case 4: obstacle.addImage(obstacle4);
+      case 4: obstaculo.addImage(obstacle4);
       break
-      case 5: obstacle.addImage(obstacle5);
+      case 5: obstaculo.addImage(obstacle5);
       break
-      case 6: obstacle.addImage(obstacle6);
+      case 6: obstaculo.addImage(obstacle6);
       break
       default: break;
     }
     //asignar escala y tiempo de vida
-    obstacle.scale = 0.5;
-    obstacle.lifetime = 210;
+    obstaculo.scale = 0.5;
+    obstaculo.lifetime = 210;
 
     //agregar cada obstáculo al grupo
-    obstaclesGroup.add(obstacle);
+    obstaclesGroup.add(obstaculo);
   }
 }
 
